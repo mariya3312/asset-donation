@@ -49,5 +49,8 @@ urlpatterns = [
         views.DonationDetailView.as_view(),
         name="donation-detail"
     ),
+
+     path('admin-panel/', views.dashboard, name='admin_dashboard'),
 ]
+
 

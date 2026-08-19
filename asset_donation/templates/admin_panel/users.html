@@ -1,0 +1,167 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}User Management - Asset Donation Admin{% endblock %}
+
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="info">
+            <h4>Total Users</h4>
+            <div class="number">{{ total_users_count }}</div>
+        </div>
+        <div class="icon-badge blue">
+            👥
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="info">
+            <h4>Active Users</h4>
+            <div class="number">{{ active_users_count }}</div>
+        </div>
+        <div class="icon-badge green">
+            ✓
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="info">
+            <h4>Staff & Admins</h4>
+            <div class="number">{{ staff_users_count }}</div>
+        </div>
+        <div class="icon-badge purple">
+            🛡️
+        </div>
+    </div>
+</div>
+
+<!-- Main Table Card -->
+<div class="panel-card">
+    <div class="panel-header">
+        <h3>All Registered Users ({{ users|length }})</h3>
+
+        <!-- Search & Filter Form -->
+        <form method="GET" action="{% url 'admin_users' %}" class="toolbar-form">
+            <div class="search-input-group">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    name="q" 
+                    class="search-input" 
+                    placeholder="Search by username, email..." 
+                    value="{{ search_query|default:'' }}"
+                >
+            </div>
+
+            <select name="role" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Roles</option>
+                <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admins / Superusers</option>
+                <option value="staff" {% if role_filter == 'staff' %}selected{% endif %}>Staff Members</option>
+                <option value="user" {% if role_filter == 'user' %}selected{% endif %}>Regular Users</option>
+            </select>
+
+            <select name="status" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Status</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary">Search</button>
+            {% if search_query or role_filter or status_filter %}
+                <a href="{% url 'admin_users' %}" class="btn btn-secondary">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Donations</th>
+                    <th>Requests</th>
+                    <th>Date Joined</th>
+                    <th>Last Login</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar">
+                                {{ u.username|slice:":2"|upper }}
+                            </div>
+                            <div class="user-info">
+                                <div class="username">{{ u.username }}</div>
+                                <div class="fullname">
+                                    {% if u.first_name or u.last_name %}
+                                        {{ u.get_full_name }}
+                                    {% else %}
+                                        <span style="color: #9ca3af;">—</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if u.email %}
+                            <a href="mailto:{{ u.email }}" style="color: #2563eb; text-decoration: none;">{{ u.email }}</a>
+                        {% else %}
+                            <span style="color: #9ca3af;">No email</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_superuser %}
+                            <span class="badge badge-admin">Super Admin</span>
+                        {% elif u.is_staff %}
+                            <span class="badge badge-staff">Staff</span>
+                        {% else %}
+                            <span class="badge badge-user">User</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="badge badge-active">Active</span>
+                        {% else %}
+                            <span class="badge badge-inactive">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="count-pill">{{ u.donations_count|default:0 }}</span>
+                    </td>
+                    <td>
+                        <span class="count-pill">{{ u.requests_count|default:0 }}</span>
+                    </td>
+                    <td>
+                        <span style="color: #4b5563; font-size: 13px;">{{ u.date_joined|date:"M d, Y" }}</span>
+                    </td>
+                    <td>
+                        {% if u.last_login %}
+                            <span style="color: #4b5563; font-size: 13px;">{{ u.last_login|date:"M d, Y H:i" }}</span>
+                        {% else %}
+                            <span style="color: #9ca3af; font-size: 13px;">Never</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <div class="icon">👤</div>
+                            <h4>No users found</h4>
+                            <p>Try adjusting your search query or filter options.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

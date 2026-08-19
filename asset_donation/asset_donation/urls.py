@@ -33,6 +33,7 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
     path('favicon.ico', RedirectView.as_view(url='/static/favicon.svg', permanent=True)),
     path('admin/', admin.site.urls),
+    path('admin-panel/', include('myapp.admin_panel_urls')),
     path('api/schema/', HiddenSpectacularJSONAPIView.as_view(), name='schema'),
     path('api/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/', include('myapp.urls')),

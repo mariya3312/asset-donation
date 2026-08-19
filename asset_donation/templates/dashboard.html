@@ -1,0 +1,111 @@
+{% extends "admin_panel/base.html" %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+{% block page_title %}
+Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <h4>Total Users</h4>
+        <h2>{{ total_users }}</h2>
+    </div>
+
+    <div class="stat-card">
+        <h4>Total Donations</h4>
+        <h2>{{ total_donations }}</h2>
+    </div>
+
+    <div class="stat-card">
+        <h4>Total Requests</h4>
+        <h2>{{ total_requests }}</h2>
+    </div>
+
+    <div class="stat-card">
+        <h4>Total Reports</h4>
+        <h2>{{ total_reports }}</h2>
+    </div>
+
+</div>
+
+
+<div class="card">
+
+    <div class="card-header">
+
+        <h3>
+            Recent Donations
+        </h3>
+
+        <a href="{% url 'admin_donations' %}">
+            View All
+        </a>
+
+    </div>
+
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>ID</th>
+                <th>Donation</th>
+                <th>User</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for donation in recent_donations %}
+
+            <tr>
+
+                <td>
+                    {{ donation.id }}
+                </td>
+
+                <td>
+                    {{ donation.title }}
+                </td>
+
+                <td>
+                    {{ donation.user.username }}
+                </td>
+
+                <td>
+                    {{ donation.status }}
+                </td>
+
+                <td>
+                    {{ donation.created_at|date:"d M Y" }}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+                <td colspan="5">
+                    No donations found.
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

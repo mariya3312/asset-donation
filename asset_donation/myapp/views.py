@@ -1,3 +1,5 @@
+from django.http import request
+from django.contrib.auth import base_user
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView
 
@@ -32,6 +34,15 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
     inline_serializer,
+)
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.models import User
+from django.shortcuts import render
+# pyrefly: ignore [missing-import]
+from .models import (
+    Donation,
+    Request,
+    Report,
 )
 
 class RegisterView(APIView):
@@ -845,6 +856,31 @@ class DonationListView(APIView):
             serializer.data,
             status=status.HTTP_200_OK
         )
-       
-        
+    def dashboard(request):
+
+    # pyrefly: ignore [parse-error]
+    context = {
+        'total_users': User.objects.count(),
+
+        'total_donations':
+            Donation.objects.count(),
+
+        'total_requests':
+            Request.objects.count(),
+
+        'total_reports':
+            Report.objects.count(),
+
+        'recent_donations':
+            Donation.objects.order_by(
+                '-created_at'
+            )[:10],
+    }
+
+    # pyrefly: ignore [invalid-syntax]
+    return render(
+        request,
+        'myapp/dashboard.html',
+        context
+    )
   

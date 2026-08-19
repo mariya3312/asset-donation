@@ -59,6 +59,7 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Asset Donation API',
     'DESCRIPTION': 'API documentation for the asset donation app.',
     'VERSION': '1.0.0',
+    'SWAGGER_UI_FAVICON_HREF': '/static/favicon.svg',
     'TAGS': [
         {'name': 'AUTH'},
         {'name': 'DONATIONS'},
@@ -145,6 +146,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 

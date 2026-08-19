@@ -1,4 +1,9 @@
 from django.shortcuts import render, get_object_or_404
+from django.views.generic import TemplateView
+
+class IndexView(TemplateView):
+    template_name = 'index.html'
+
 from django.contrib.auth.models import User
 from rest_framework import serializers, status
 from rest_framework.views import APIView

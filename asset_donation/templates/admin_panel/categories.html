@@ -1,0 +1,229 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}{{ page_title }} - Asset Donation Admin{% endblock %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <a href="{% url 'admin_categories' %}?type=main" style="text-decoration: none; color: inherit;">
+        <div class="stat-card {% if category_type == 'main' %}highlight-card{% endif %}">
+            <div class="info">
+                <h4>Main Categories</h4>
+                <div class="number">{{ total_categories_count }}</div>
+            </div>
+            <div class="icon-badge blue">
+                📁
+            </div>
+        </div>
+    </a>
+    <a href="{% url 'admin_categories' %}?type=sub" style="text-decoration: none; color: inherit;">
+        <div class="stat-card {% if category_type == 'sub' %}highlight-card{% endif %}">
+            <div class="info">
+                <h4>Sub Categories</h4>
+                <div class="number">{{ total_subcategories_count }}</div>
+            </div>
+            <div class="icon-badge purple">
+                📂
+            </div>
+        </div>
+    </a>
+    <a href="{% url 'admin_categories' %}?type=child" style="text-decoration: none; color: inherit;">
+        <div class="stat-card {% if category_type == 'child' %}highlight-card{% endif %}">
+            <div class="info">
+                <h4>Child Categories</h4>
+                <div class="number">{{ total_childcategories_count }}</div>
+            </div>
+            <div class="icon-badge green">
+                🏷️
+            </div>
+        </div>
+    </a>
+</div>
+
+<!-- Main Table Card -->
+<div class="panel-card">
+    <div class="panel-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <h3>
+                {% if category_type == 'sub' %}
+                    Sub Categories
+                {% elif category_type == 'child' %}
+                    Child Categories
+                {% else %}
+                    Main Categories
+                {% endif %}
+                ({{ items|length }})
+            </h3>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <!-- Search Form -->
+            <form method="GET" action="{% url 'admin_categories' %}" class="toolbar-form" style="margin: 0;">
+                <input type="hidden" name="type" value="{{ category_type }}">
+                <div class="search-input-group">
+                    <span class="search-icon">🔍</span>
+                    <input 
+                        type="text" 
+                        name="q" 
+                        class="search-input" 
+                        placeholder="Search {{ category_type }} categories..." 
+                        value="{{ search_query|default:'' }}"
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary">Search</button>
+                {% if search_query %}
+                    <a href="{% url 'admin_categories' %}?type={{ category_type }}" class="btn btn-secondary">Clear</a>
+                {% endif %}
+            </form>
+
+            <a href="{% url 'category_add' %}?type={{ category_type }}" class="btn btn-primary" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
+                <span>+</span> Add {% if category_type == 'sub' %}Sub Category{% elif category_type == 'child' %}Child Category{% else %}Main Category{% endif %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">ID</th>
+                    {% if category_type == 'main' %}
+                        <th style="width: 240px;">Main Category</th>
+                        <th>Description</th>
+                        <th>Subcategories</th>
+                        <th style="text-align: center; width: 120px;">Total Items</th>
+                    {% elif category_type == 'sub' %}
+                        <th style="width: 220px;">Sub Category</th>
+                        <th style="width: 180px;">Parent Category</th>
+                        <th>Description</th>
+                        <th style="text-align: center; width: 130px;">Child Count</th>
+                    {% elif category_type == 'child' %}
+                        <th style="width: 220px;">Child Category</th>
+                        <th style="width: 180px;">Parent Subcategory</th>
+                        <th style="width: 180px;">Main Category</th>
+                        <th>Description</th>
+                        <th style="text-align: center; width: 100px;">Image</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <span style="font-weight: 600; color: #6b7280;">#{{ item.id }}</span>
+                    </td>
+
+                    {% if category_type == 'main' %}
+                        <td>
+                            <div style="font-weight: 600; color: #111827; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #2563eb; font-size: 16px;">📁</span>
+                                {{ item.name }}
+                            </div>
+                        </td>
+                        <td>
+                            <span style="color: #4b5563; font-size: 13px;">
+                                {% if item.description %}
+                                    {{ item.description }}
+                                {% else %}
+                                    <span style="color: #9ca3af; font-style: italic;">No description provided</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                                {% for sub in item.subcategories.all %}
+                                    <span class="badge badge-condition" style="font-size: 12px; font-weight: 500;">
+                                        {{ sub.name }}
+                                    </span>
+                                {% empty %}
+                                    <span style="color: #9ca3af; font-size: 13px;">No subcategories</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="count-pill">{{ item.donations_count|default:0 }}</span>
+                        </td>
+
+                    {% elif category_type == 'sub' %}
+                        <td>
+                            <div style="font-weight: 600; color: #111827; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: #f3e8ff; color: #9333ea; font-size: 16px;">📂</span>
+                                {{ item.name }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-category" style="font-size: 12px; font-weight: 600;">
+                                📁 {{ item.category.name }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="color: #4b5563; font-size: 13px;">
+                                {% if item.description %}
+                                    {{ item.description }}
+                                {% else %}
+                                    <span style="color: #9ca3af; font-style: italic;">No description provided</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="count-pill">{{ item.child_count|default:0 }}</span>
+                        </td>
+
+                    {% elif category_type == 'child' %}
+                        <td>
+                            <div style="font-weight: 600; color: #111827; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: #f0fdf4; color: #16a34a; font-size: 16px;">🏷️</span>
+                                {{ item.name }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-condition" style="font-size: 12px; font-weight: 600;">
+                                📂 {{ item.subcategory.name }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge badge-category" style="font-size: 12px; font-weight: 600;">
+                                📁 {{ item.subcategory.category.name }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="color: #4b5563; font-size: 13px;">
+                                {% if item.description %}
+                                    {{ item.description }}
+                                {% else %}
+                                    <span style="color: #9ca3af; font-style: italic;">No description provided</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td style="text-align: center;">
+                            {% if item.image %}
+                                <a href="{{ item.image.url }}" target="_blank">
+                                    <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                </a>
+                            {% else %}
+                                <span style="color: #9ca3af; font-size: 12px;">None</span>
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <div class="icon">📁</div>
+                            <h4>No {{ category_type }} categories found</h4>
+                            <p>Try adjusting your search query or add categories in the admin interface.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

@@ -12,9 +12,6 @@ urlpatterns = [
     path('reports/', views.reports_view, name='admin_reports'),
     path('subscriptions/', views.subscriptions_view, name='admin_subscriptions'),
     path('logout/', views.admin_logout_view, name='admin_logout'),
-    path(
-        'admin-panel/users/add/',
-        views.add_user,
-        name='admin_add_user'
-    ),
+    path('users/add/', views.add_user, name='admin_add_user'),
+    path('categories/add/', views.category_add, name='category_add'),
 ]

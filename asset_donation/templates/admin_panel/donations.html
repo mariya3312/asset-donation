@@ -1,0 +1,187 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Donations Management - Asset Donation Admin{% endblock %}
+
+{% block page_title %}Donations Management{% endblock %}
+
+{% block content %}
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="info">
+            <h4>Total Donations</h4>
+            <div class="number">{{ total_donations_count }}</div>
+        </div>
+        <div class="icon-badge blue">
+            📦
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="info">
+            <h4>Available</h4>
+            <div class="number">{{ available_count }}</div>
+        </div>
+        <div class="icon-badge green">
+            ✨
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="info">
+            <h4>Reserved</h4>
+            <div class="number">{{ reserved_count }}</div>
+        </div>
+        <div class="icon-badge amber">
+            ⏳
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="info">
+            <h4>Completed</h4>
+            <div class="number">{{ completed_count }}</div>
+        </div>
+        <div class="icon-badge purple">
+            🤝
+        </div>
+    </div>
+</div>
+
+<!-- Main Table Card -->
+<div class="panel-card">
+    <div class="panel-header">
+        <h3>All Donations ({{ donations|length }})</h3>
+
+        <!-- Search & Filter Form -->
+        <form method="GET" action="{% url 'admin_donations' %}" class="toolbar-form">
+            <div class="search-input-group">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    name="q" 
+                    class="search-input" 
+                    placeholder="Search by title, donor, location..." 
+                    value="{{ search_query|default:'' }}"
+                >
+            </div>
+
+            <select name="status" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                <option value="Available" {% if status_filter == 'Available' %}selected{% endif %}>Available</option>
+                <option value="Reserved" {% if status_filter == 'Reserved' %}selected{% endif %}>Reserved</option>
+                <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+                <option value="Expired" {% if status_filter == 'Expired' %}selected{% endif %}>Expired</option>
+            </select>
+
+            <select name="condition" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Conditions</option>
+                <option value="New" {% if condition_filter == 'New' %}selected{% endif %}>New</option>
+                <option value="Like New" {% if condition_filter == 'Like New' %}selected{% endif %}>Like New</option>
+                <option value="Good" {% if condition_filter == 'Good' %}selected{% endif %}>Good</option>
+                <option value="Used" {% if condition_filter == 'Used' %}selected{% endif %}>Used</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary">Search</button>
+            {% if search_query or status_filter or condition_filter %}
+                <a href="{% url 'admin_donations' %}" class="btn btn-secondary">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Item / Donation</th>
+                    <th>Donor</th>
+                    <th>Category</th>
+                    <th>Condition</th>
+                    <th>Status</th>
+                    <th>Urgency</th>
+                    <th>Location</th>
+                    <th>Date Posted</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in donations %}
+                <tr>
+                    <td>
+                        <div class="donation-cell">
+                            <div class="donation-thumb">
+                                {% with d.images.all|first as img %}
+                                    {% if img and img.image %}
+                                        <img src="{{ img.image.url }}" alt="{{ d.title }}">
+                                    {% else %}
+                                        <span>📦</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                            <div class="donation-info">
+                                <div class="donation-title">{{ d.title }}</div>
+                                <div class="donation-desc">{{ d.description|truncatechars:45 }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="user-cell-compact">
+                            <div class="user-avatar-sm">{{ d.user.username|slice:":2"|upper }}</div>
+                            <div>
+                                <div class="donor-name">{{ d.user.username }}</div>
+                                <div class="donor-email">{{ d.user.email|default:"No email" }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="category-badge">
+                            {{ d.subcategory.category.name }} / {{ d.subcategory.name }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-condition">{{ d.condition }}</span>
+                    </td>
+                    <td>
+                        {% if d.status == 'Available' %}
+                            <span class="badge badge-active">Available</span>
+                        {% elif d.status == 'Reserved' %}
+                            <span class="badge badge-warning">Reserved</span>
+                        {% elif d.status == 'Completed' %}
+                            <span class="badge badge-completed">Completed</span>
+                        {% elif d.status == 'Expired' %}
+                            <span class="badge badge-inactive">Expired</span>
+                        {% else %}
+                            <span class="badge">{{ d.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if d.urgency == 'High' %}
+                            <span class="badge badge-danger">High</span>
+                        {% elif d.urgency == 'Normal' %}
+                            <span class="badge badge-user">Normal</span>
+                        {% else %}
+                            <span class="badge badge-low">Low</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="location-text" title="{{ d.pickup_location }}">
+                            📍 {{ d.pickup_location|truncatechars:25 }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="color: #4b5563; font-size: 13px;">{{ d.created_at|date:"M d, Y" }}</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <div class="icon">📦</div>
+                            <h4>No donations found</h4>
+                            <p>Try adjusting your search query or filter options.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

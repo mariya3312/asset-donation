@@ -51,6 +51,7 @@ urlpatterns = [
     ),
 
      path('admin-panel/', views.dashboard, name='admin_dashboard'),
+     
 ]
 
 

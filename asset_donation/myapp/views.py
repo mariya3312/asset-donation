@@ -42,7 +42,6 @@ from django.shortcuts import render
 from .models import (
     Donation,
     Request,
-    Report,
 )
 
 class RegisterView(APIView):
@@ -483,7 +482,10 @@ class ChangePasswordView(APIView):
             status=status.HTTP_200_OK
         )
 class CategoryListView(APIView):
-    permission_classes = [AllowAny]
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsAuthenticated()]
+        return [AllowAny()]
 
     @extend_schema(
         tags=["CATEGORIES"],
@@ -500,6 +502,24 @@ class CategoryListView(APIView):
         )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        tags=["CATEGORIES"],
+        summary="Create Category",
+        request=CategorySerializer,
+        responses=CategorySerializer,
+    )
+    def post(self, request):
+        serializer = CategorySerializer(data=request.data)
+
+        if serializer.is_valid():
+            category = serializer.save()
+            return Response(
+                CategorySerializer(category).data,
+                status=status.HTTP_201_CREATED,
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class DonationCreateView(APIView):
     def get_permissions(self):
@@ -856,31 +876,18 @@ class DonationListView(APIView):
             serializer.data,
             status=status.HTTP_200_OK
         )
-    def dashboard(request):
 
-    # pyrefly: ignore [parse-error]
+
+def dashboard(request):
     context = {
         'total_users': User.objects.count(),
-
-        'total_donations':
-            Donation.objects.count(),
-
-        'total_requests':
-            Request.objects.count(),
-
-        'total_reports':
-            Report.objects.count(),
-
-        'recent_donations':
-            Donation.objects.order_by(
-                '-created_at'
-            )[:10],
+        'total_donations': Donation.objects.count(),
+        'total_requests': Request.objects.count(),
+        'total_reports': 0,
+        'recent_donations': Donation.objects.select_related('user', 'subcategory').prefetch_related('images').order_by('-created_at')[:10],
     }
-
-    # pyrefly: ignore [invalid-syntax]
     return render(
         request,
-        'myapp/dashboard.html',
+        "admin/dashboard.html",
         context
     )
-  

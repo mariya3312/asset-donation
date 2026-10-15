@@ -1,111 +1,133 @@
 {% extends "admin_panel/base.html" %}
 
-{% block title %}
-Dashboard
-{% endblock %}
+{% block title %}Dashboard - Asset Donation Admin{% endblock %}
 
-{% block page_title %}
-Dashboard
-{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
 
+<!-- Stats Cards -->
 <div class="stats-grid">
-
     <div class="stat-card">
-        <h4>Total Users</h4>
-        <h2>{{ total_users }}</h2>
+        <div class="info">
+            <h4>Total Users</h4>
+            <div class="number">{{ total_users|default:"0" }}</div>
+        </div>
+        <div class="icon-badge blue">👥</div>
     </div>
 
     <div class="stat-card">
-        <h4>Total Donations</h4>
-        <h2>{{ total_donations }}</h2>
+        <div class="info">
+            <h4>Total Donations</h4>
+            <div class="number">{{ total_donations|default:"0" }}</div>
+        </div>
+        <div class="icon-badge green">📦</div>
     </div>
 
     <div class="stat-card">
-        <h4>Total Requests</h4>
-        <h2>{{ total_requests }}</h2>
+        <div class="info">
+            <h4>Total Requests</h4>
+            <div class="number">{{ total_requests|default:"0" }}</div>
+        </div>
+        <div class="icon-badge amber">📋</div>
     </div>
 
     <div class="stat-card">
-        <h4>Total Reports</h4>
-        <h2>{{ total_reports }}</h2>
+        <div class="info">
+            <h4>Total Reports</h4>
+            <div class="number">{{ total_reports|default:"0" }}</div>
+        </div>
+        <div class="icon-badge purple">📊</div>
     </div>
-
 </div>
 
-
-<div class="card">
-
-    <div class="card-header">
-
-        <h3>
-            Recent Donations
-        </h3>
-
-        <a href="{% url 'admin_donations' %}">
-            View All
+<!-- Recent Donations Card -->
+<div class="panel-card">
+    <div class="panel-header">
+        <h3>Recent Donations</h3>
+        <a href="{% url 'admin_donations' %}" class="btn btn-secondary">
+            View All →
         </a>
-
     </div>
 
-
-    <table>
-
-        <thead>
-
-            <tr>
-                <th>ID</th>
-                <th>Donation</th>
-                <th>User</th>
-                <th>Status</th>
-                <th>Date</th>
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-            {% for donation in recent_donations %}
-
-            <tr>
-
-                <td>
-                    {{ donation.id }}
-                </td>
-
-                <td>
-                    {{ donation.title }}
-                </td>
-
-                <td>
-                    {{ donation.user.username }}
-                </td>
-
-                <td>
-                    {{ donation.status }}
-                </td>
-
-                <td>
-                    {{ donation.created_at|date:"d M Y" }}
-                </td>
-
-            </tr>
-
-            {% empty %}
-
-            <tr>
-                <td colspan="5">
-                    No donations found.
-                </td>
-            </tr>
-
-            {% endfor %}
-
-        </tbody>
-
-    </table>
-
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 70px;">ID</th>
+                    <th>Donation</th>
+                    <th>User</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for donation in recent_donations %}
+                <tr>
+                    <td>
+                        <span class="count-pill">#{{ donation.id }}</span>
+                    </td>
+                    <td>
+                        <div class="donation-cell">
+                            <div class="donation-thumb">
+                                {% with donation.images.all|first as img %}
+                                    {% if img and img.image %}
+                                        <img src="{{ img.image.url }}" alt="{{ donation.title }}">
+                                    {% else %}
+                                        <span>📦</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                            <div class="donation-info">
+                                <div class="donation-title">{{ donation.title }}</div>
+                                {% if donation.subcategory %}
+                                    <div class="donation-desc">{{ donation.subcategory.name }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="user-cell-compact">
+                            <div class="user-avatar-sm">{{ donation.user.username|slice:":2"|upper }}</div>
+                            <div>
+                                <div class="donor-name">{{ donation.user.username }}</div>
+                                {% if donation.user.email %}
+                                    <div class="donor-email">{{ donation.user.email }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if donation.status == 'Available' %}
+                            <span class="badge badge-active">Available</span>
+                        {% elif donation.status == 'Reserved' %}
+                            <span class="badge badge-warning">Reserved</span>
+                        {% elif donation.status == 'Completed' %}
+                            <span class="badge badge-completed">Completed</span>
+                        {% elif donation.status == 'Expired' %}
+                            <span class="badge badge-inactive">Expired</span>
+                        {% else %}
+                            <span class="badge badge-user">{{ donation.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="color: #4b5563; font-size: 13px;">{{ donation.created_at|date:"d M Y" }}</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <div class="icon">📦</div>
+                            <h4>No donations found</h4>
+                            <p>There are no recent donations yet.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 {% endblock %}

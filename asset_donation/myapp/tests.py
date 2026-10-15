@@ -3,8 +3,51 @@ from io import StringIO
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
+from rest_framework.test import APIClient
 from myapp.models import Category, SubCategory, Donation, Request
+
+
+class CategoryAPIEndpointTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="category_api_user",
+            password="test-password",
+        )
+        self.client = APIClient()
+
+    def test_category_list_remains_public(self):
+        Category.objects.create(name="Books")
+
+        response = self.client.get(reverse("categories"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data[0]["name"], "Books")
+
+    def test_category_creation_requires_authentication(self):
+        response = self.client.post(
+            reverse("categories"),
+            {"name": "Books", "description": "Books for sharing"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertFalse(Category.objects.exists())
+
+    def test_authenticated_user_can_create_category(self):
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.post(
+            reverse("categories"),
+            {"name": "Books", "description": "Books for sharing"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["name"], "Books")
+        self.assertEqual(response.data["description"], "Books for sharing")
+        self.assertTrue(Category.objects.filter(name="Books").exists())
 
 
 class ExpireRequestsCommandTestCase(TestCase):
@@ -134,4 +177,3 @@ class ExpireDonationsCommandTestCase(TestCase):
         self.assertEqual(recent_available_donation.status, "Available")
         self.assertEqual(old_reserved_donation.status, "Reserved")
         self.assertIn("Expired 1 donations", out.getvalue())
-

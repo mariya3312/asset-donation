@@ -18,8 +18,14 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 import random
 import math
-from .serializers import CategorySerializer, DonationSerializer, DonationImageSerializer
-from .models import Category, SubCategory, Donation, DonationImage
+from .serializers import (
+    CategorySerializer,
+    ChildCategoryCreateSerializer,
+    DonationSerializer,
+    DonationImageSerializer,
+    SubCategoryCreateSerializer,
+)
+from .models import Category, SubCategory, ChildCategory, Donation, DonationImage
 from rest_framework.generics import ListAPIView
 from django.db.models import Q
 from django.core.mail import send_mail
@@ -520,6 +526,48 @@ class CategoryListView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SubCategoryCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=["CATEGORIES"],
+        summary="Create Subcategory",
+        request=SubCategoryCreateSerializer,
+        responses=SubCategoryCreateSerializer,
+    )
+    def post(self, request):
+        serializer = SubCategoryCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            subcategory = serializer.save()
+            return Response(
+                SubCategoryCreateSerializer(subcategory).data,
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChildCategoryCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    @extend_schema(
+        tags=["CATEGORIES"],
+        summary="Create Child Category",
+        request=ChildCategoryCreateSerializer,
+        responses=ChildCategoryCreateSerializer,
+    )
+    def post(self, request):
+        serializer = ChildCategoryCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            child_category = serializer.save()
+            return Response(
+                ChildCategoryCreateSerializer(child_category).data,
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class DonationCreateView(APIView):
     def get_permissions(self):

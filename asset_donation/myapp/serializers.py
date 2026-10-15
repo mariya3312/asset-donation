@@ -25,6 +25,21 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ["id", "name", "description", "subcategories"]
 
+
+class SubCategoryCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubCategory
+        fields = ["id", "category", "name", "description"]
+        read_only_fields = ["id"]
+
+
+class ChildCategoryCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChildCategory
+        fields = ["id", "subcategory", "name", "description", "image"]
+        read_only_fields = ["id"]
+
+
 class DonationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Donation

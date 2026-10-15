@@ -27,6 +27,8 @@ urlpatterns = [
   path("auth/verify-otp/", views.VerifyOTPView.as_view(), name="verify-otp"),
   path("auth/reset-password/", views.ResetPasswordView.as_view(), name="reset-password"),
   path("categories/", views.CategoryListView.as_view(), name="categories"),
+  path("subcategories/", views.SubCategoryCreateView.as_view(), name="subcategory-create"),
+  path("child-categories/", views.ChildCategoryCreateView.as_view(), name="child-category-create"),
    path("donations/", DonationCreateView.as_view(), name="donation-create"),
 
  path(
@@ -53,5 +55,4 @@ urlpatterns = [
      path('admin-panel/', views.dashboard, name='admin_dashboard'),
      
 ]
-
 

@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
-from myapp.models import Category, SubCategory, Donation, Request
+from myapp.models import Category, SubCategory, ChildCategory, Donation, Request
 
 
 class CategoryAPIEndpointTestCase(TestCase):
@@ -48,6 +48,72 @@ class CategoryAPIEndpointTestCase(TestCase):
         self.assertEqual(response.data["name"], "Books")
         self.assertEqual(response.data["description"], "Books for sharing")
         self.assertTrue(Category.objects.filter(name="Books").exists())
+
+
+class NestedCategoryAPIEndpointTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="nested_category_api_user",
+            password="test-password",
+        )
+        self.category = Category.objects.create(name="Books")
+        self.subcategory = SubCategory.objects.create(
+            category=self.category,
+            name="Fiction",
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_subcategory(self):
+        response = self.client.post(
+            reverse("subcategory-create"),
+            {
+                "category": self.category.id,
+                "name": "Nonfiction",
+                "description": "Factual books",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["category"], self.category.id)
+        self.assertTrue(
+            SubCategory.objects.filter(
+                category=self.category,
+                name="Nonfiction",
+            ).exists()
+        )
+
+    def test_create_child_category(self):
+        response = self.client.post(
+            reverse("child-category-create"),
+            {
+                "subcategory": self.subcategory.id,
+                "name": "Mystery",
+                "description": "Mystery novels",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["subcategory"], self.subcategory.id)
+        self.assertTrue(
+            ChildCategory.objects.filter(
+                subcategory=self.subcategory,
+                name="Mystery",
+            ).exists()
+        )
+
+    def test_nested_category_creation_requires_authentication(self):
+        self.client.force_authenticate(user=None)
+
+        response = self.client.post(
+            reverse("subcategory-create"),
+            {"category": self.category.id, "name": "Nonfiction"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 401)
 
 
 class ExpireRequestsCommandTestCase(TestCase):
